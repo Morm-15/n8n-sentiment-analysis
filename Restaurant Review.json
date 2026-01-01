@@ -1,0 +1,206 @@
+{
+  "name": "Restaurant Review",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Restaurant Review",
+        "formDescription": "Please leave your feedback",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "your name?",
+              "placeholder": "Ex: Ali",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "your review",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "410eb7fe-a028-48a6-a3f0-41923c9862cd",
+      "name": "On form submission",
+      "webhookId": "ab27a1fe-0499-4a04-8a1e-628bcb183500"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-lite-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-lite-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a sentiment analysis system.\nAnalyze the following review and classify it into exactly one of these categories: \"Positive\", \"Negative\", or \"Neutral\".\nReply with ONLY the category word. Do not generate JSON or Markdown.\n\nReview: {{ $json[\"your review\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        288,
+        144
+      ],
+      "id": "0446323f-0852-4f91-a322-6c2614c306d8",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "iTyzdZ7wY2PQylAC",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appRZMcTEf3TBGU9X",
+          "mode": "list",
+          "cachedResultName": "Reviews App",
+          "cachedResultUrl": "https://airtable.com/appRZMcTEf3TBGU9X"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzIJap8z2p3dy0k",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appRZMcTEf3TBGU9X/tblzIJap8z2p3dy0k"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json[\"your name?\"] }}",
+            "Sentiment": "={{ $json.content.parts[0].text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        656,
+        -32
+      ],
+      "id": "5ce707cc-6eac-4214-916e-d7a306a4a65c",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "BwPE7outMCVCWa3V",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        352,
+        -80
+      ],
+      "id": "716a8e30-ebef-4740-8024-59632d60beea",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        []
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "576b6706-5ae6-4010-ad6b-fd3cf11c4819",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6a2da66d5b892429263b35e717ca5140b8a67f9414243ef88673e590b938c2b9"
+  },
+  "id": "7ZI9RIqAlZLAUSpu",
+  "tags": []
+}
